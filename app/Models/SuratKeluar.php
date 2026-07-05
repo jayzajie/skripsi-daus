@@ -25,4 +25,9 @@ class SuratKeluar extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function suratMasuk(): BelongsTo
+    {
+        return $this->belongsTo(SuratMasuk::class);
+    }
 }

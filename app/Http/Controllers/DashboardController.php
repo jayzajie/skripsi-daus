@@ -103,12 +103,15 @@ class DashboardController extends Controller
         $user = $request->user();
         $search = $request->string('q')->toString();
         $status = $request->string('status')->toString();
+        $tahun = $request->string('tahun')->toString();
 
         return match ($section) {
             'data-pengguna' => [
                 'type' => 'users',
                 'records' => User::query()
-                    ->when($search, fn ($query) => $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                    ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")))
                     ->when($status, fn ($query) => $query->where('status', $status))
                     ->latest()
                     ->paginate(10)
@@ -118,7 +121,9 @@ class DashboardController extends Controller
                 'type' => 'masyarakat',
                 'records' => Masyarakat::query()
                     ->when($user->hasRole(User::ROLE_MASYARAKAT), fn ($query) => $query->where('user_id', $user->id))
-                    ->when($search, fn ($query) => $query->where('nama_lengkap', 'like', "%{$search}%")->orWhere('nik', 'like', "%{$search}%"))
+                    ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
+                        ->where('nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")))
                     ->latest()
                     ->paginate(10)
                     ->withQueryString(),
@@ -126,7 +131,10 @@ class DashboardController extends Controller
             'surat-masuk' => [
                 'type' => 'surat-masuk',
                 'records' => SuratMasuk::query()
-                    ->when($search, fn ($query) => $query->where('nomor_surat', 'like', "%{$search}%")->orWhere('asal_surat', 'like', "%{$search}%")->orWhere('perihal', 'like', "%{$search}%"))
+                    ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
+                        ->where('nomor_surat', 'like', "%{$search}%")
+                        ->orWhere('asal_surat', 'like', "%{$search}%")
+                        ->orWhere('perihal', 'like', "%{$search}%")))
                     ->when($status, fn ($query) => $query->where('status', $status))
                     ->latest()
                     ->paginate(10)
@@ -134,8 +142,11 @@ class DashboardController extends Controller
             ],
             'surat-keluar' => [
                 'type' => 'surat-keluar',
-                'records' => SuratKeluar::query()
-                    ->when($search, fn ($query) => $query->where('nomor_surat', 'like', "%{$search}%")->orWhere('tujuan_surat', 'like', "%{$search}%")->orWhere('perihal', 'like', "%{$search}%"))
+                'records' => SuratKeluar::with('suratMasuk')
+                    ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
+                        ->where('nomor_surat', 'like', "%{$search}%")
+                        ->orWhere('tujuan_surat', 'like', "%{$search}%")
+                        ->orWhere('perihal', 'like', "%{$search}%")))
                     ->when($status, fn ($query) => $query->where('status', $status))
                     ->latest()
                     ->paginate(10)
@@ -154,7 +165,10 @@ class DashboardController extends Controller
                 'type' => 'permohonan-sktm',
                 'records' => PermohonanSktm::with('masyarakat')
                     ->when($user->hasRole(User::ROLE_MASYARAKAT), fn ($query) => $query->whereHas('masyarakat', fn ($inner) => $inner->where('user_id', $user->id)))
-                    ->when($search, fn ($query) => $query->where('nomor_pengajuan', 'like', "%{$search}%")->orWhere('nama_pemohon', 'like', "%{$search}%")->orWhere('nik', 'like', "%{$search}%"))
+                    ->when($search, fn ($query) => $query->where(fn ($inner) => $inner
+                        ->where('nomor_pengajuan', 'like', "%{$search}%")
+                        ->orWhere('nama_pemohon', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")))
                     ->when($status, fn ($query) => $query->where('status', $status))
                     ->latest()
                     ->paginate(10)
@@ -176,6 +190,7 @@ class DashboardController extends Controller
                 'type' => 'penerbitan-sktm',
                 'records' => PenerbitanSktm::with('permohonanSktm.masyarakat')
                     ->when($user->hasRole(User::ROLE_MASYARAKAT), fn ($query) => $query->whereHas('permohonanSktm.masyarakat', fn ($inner) => $inner->where('user_id', $user->id)))
+                    ->when($tahun, fn ($query) => $query->whereYear('tanggal_terbit', $tahun))
                     ->latest()
                     ->paginate(10)
                     ->withQueryString(),
@@ -197,6 +212,26 @@ class DashboardController extends Controller
             'laporan' => [
                 'type' => 'laporan',
                 'records' => collect(),
+                'summary' => [
+                    'Surat Masuk' => SuratMasuk::count(),
+                    'Surat Keluar' => SuratKeluar::count(),
+                    'Disposisi Surat' => DisposisiSurat::count(),
+                    'Permohonan SKTM' => PermohonanSktm::count(),
+                    'SKTM Terbit' => PenerbitanSktm::count(),
+                    'Arsip Dokumen' => ArsipDokumen::count(),
+                ],
+                'sktmStatus' => PermohonanSktm::query()
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
+                'suratMasukStatus' => SuratMasuk::query()
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
+                'suratKeluarStatus' => SuratKeluar::query()
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
             ],
             default => ['type' => 'dashboard', 'records' => collect()],
         };

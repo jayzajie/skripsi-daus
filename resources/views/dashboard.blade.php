@@ -25,7 +25,7 @@
         'admin' => [
             ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
             ['id' => 'data-masyarakat', 'label' => 'Data Masyarakat', 'icon' => 'id'],
-            ['label' => 'Inventori Surat', 'icon' => 'mail', 'children' => [
+            ['label' => 'Inventorisasi Surat', 'icon' => 'mail', 'children' => [
                 ['id' => 'surat-masuk', 'label' => 'Surat Masuk'],
                 ['id' => 'surat-keluar', 'label' => 'Surat Keluar'],
                 ['id' => 'disposisi-surat', 'label' => 'Disposisi Surat'],
@@ -42,7 +42,7 @@
                     'petugas' => [
                         ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
                         ['id' => 'data-masyarakat', 'label' => 'Data Masyarakat', 'icon' => 'id'],
-                        ['label' => 'Inventori Surat', 'icon' => 'mail', 'children' => [
+                        ['label' => 'Inventorisasi Surat', 'icon' => 'mail', 'children' => [
                             ['id' => 'surat-masuk', 'label' => 'Surat Masuk'],
                             ['id' => 'surat-keluar', 'label' => 'Surat Keluar'],
                             ['id' => 'disposisi-surat', 'label' => 'Disposisi Surat'],
@@ -159,7 +159,7 @@
                     </div>
                     <h1 class="mt-5 text-[15px] font-extrabold uppercase leading-[1.55] tracking-[0] text-[#17283d]">
                         Sistem Informasi<br>
-                        Inventori Surat dan<br>
+                        Inventorisasi Surat dan<br>
                         Pelayanan SKTM<br>
                         Administrasi Berbasis Web
                     </h1>
@@ -274,7 +274,7 @@
                                 <div>
                                     <h3 class="text-[34px] font-extrabold leading-tight text-[#1b2b3f]">Selamat Datang, {{ $roleLabel }}!</h3>
                                     <p class="mt-5 max-w-[760px] text-[17px] font-semibold leading-8 text-slate-600">
-                                        Anda masuk ke dalam Sistem Informasi Inventori Surat<br class="hidden xl:block">
+                                        Anda masuk ke dalam Sistem Informasi Inventorisasi Surat<br class="hidden xl:block">
                                         dan Pelayanan SKTM Administrasi Kecamatan Marangkayu.
                                     </p>
                                 </div>
@@ -348,7 +348,7 @@
 
                         <section class="mt-7 grid gap-6 xl:grid-cols-2">
                             <article class="rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
-                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Inventori Surat</h3>
+                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Inventorisasi Surat</h3>
                                 <div class="divide-y divide-slate-100 px-6">
                                     @foreach ($inventorySummary as $item)
                                         <div class="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-5 py-4">

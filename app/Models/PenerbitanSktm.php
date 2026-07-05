@@ -18,6 +18,7 @@ class PenerbitanSktm extends Model
     {
         return [
             'tanggal_terbit' => 'date',
+            'masa_berlaku' => 'date',
         ];
     }
 

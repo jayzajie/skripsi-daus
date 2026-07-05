@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Register - Sistem Informasi Inventori Surat dan Pelayanan SKTM</title>
+    <title>Register - Sistem Informasi Inventorisasi Surat dan Pelayanan SKTM</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -37,14 +37,14 @@
 
                     <h1 class="max-w-[620px] text-[30px] font-extrabold uppercase leading-[1.35] tracking-[0] text-[#16283d]">
                         Sistem Informasi<br>
-                        Inventori Surat dan<br>
+                        Inventorisasi Surat dan<br>
                         Pelayanan SKTM<br>
                         Administrasi Berbasis Web
                     </h1>
                     <p class="mt-4 text-[23px] font-medium text-slate-800">Kecamatan Marangkayu</p>
                     <div class="mt-4 h-[2px] w-[108px] bg-[#3979bd]"></div>
                     <p class="mt-6 max-w-[520px] text-[16px] font-medium leading-8 text-slate-700">
-                        Sistem informasi untuk pengelolaan inventori surat<br>
+                        Sistem informasi untuk pengelolaan inventorisasi surat<br>
                         dan pelayanan Surat Keterangan Tidak Mampu (SKTM)<br>
                         secara terintegrasi, transparan dan efisien.
                     </p>

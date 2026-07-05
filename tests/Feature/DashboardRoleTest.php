@@ -18,7 +18,7 @@ class DashboardRoleTest extends TestCase
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Manajemen User')
-            ->assertSee('Inventori Surat')
+            ->assertSee('Inventorisasi Surat')
             ->assertSee('Pelayanan SKTM')
             ->assertSee('Laporan');
     }

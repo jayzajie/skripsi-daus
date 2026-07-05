@@ -3,9 +3,10 @@
     $records = $module['records'] ?? collect();
     $input = 'h-11 rounded-md border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500';
     $canCreate = ! (in_array($type, ['verifikasi-sktm', 'laporan', 'penerbitan-sktm'], true) && $role === App\Models\User::ROLE_MASYARAKAT);
+    $canDelete = in_array($activeSection, ['data-pengguna', 'data-masyarakat', 'profil-saya', 'surat-masuk', 'surat-keluar', 'disposisi-surat', 'permohonan-sktm', 'dokumen-saya', 'penerbitan-sktm', 'arsip-surat'], true);
 
     $parentTitle = match ($type) {
-        'surat-masuk', 'surat-keluar', 'disposisi-surat' => 'Inventori Surat',
+        'surat-masuk', 'surat-keluar', 'disposisi-surat' => 'Inventorisasi Surat',
         'permohonan-sktm', 'verifikasi-sktm', 'penerbitan-sktm', 'dokumen-saya' => 'Pelayanan SKTM',
         'users' => 'Manajemen Sistem',
         'masyarakat' => $role === App\Models\User::ROLE_MASYARAKAT ? 'Masyarakat' : 'Data Master',
@@ -28,7 +29,7 @@
     };
 
     $statusOptions = match ($type) {
-        'surat-masuk' => ['baru' => 'Baru', 'diproses' => 'Diproses', 'didisposisikan' => 'Didisposisikan', 'diarsipkan' => 'Diarsipkan'],
+        'surat-masuk' => ['baru' => 'Baru', 'dibaca' => 'Dibaca', 'diproses' => 'Diproses', 'selesai' => 'Selesai', 'didisposisikan' => 'Didisposisikan', 'diarsipkan' => 'Diarsipkan'],
         'surat-keluar' => ['draft' => 'Draft', 'diterbitkan' => 'Diterbitkan', 'dikirim' => 'Dikirim', 'diarsipkan' => 'Diarsipkan'],
         'disposisi-surat' => ['menunggu' => 'Menunggu', 'diproses' => 'Diproses', 'selesai' => 'Selesai'],
         'permohonan-sktm', 'verifikasi-sktm' => ['menunggu' => 'Menunggu', 'diverifikasi' => 'Diverifikasi', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak', 'diterbitkan' => 'Diterbitkan'],
@@ -79,8 +80,46 @@
         </div>
     @endif
 
+    @if ($type === 'laporan')
+        <div class="mx-8 flex gap-3">
+            <a href="{{ route('dashboard.laporan.export', ['format' => 'pdf']) }}" class="rounded-md bg-[#2379d7] px-4 py-2 text-sm font-extrabold text-white">Export PDF</a>
+            <a href="{{ route('dashboard.laporan.export', ['format' => 'excel']) }}" class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white">Export Excel</a>
+        </div>
+
+        <div class="mx-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            @foreach (($module['summary'] ?? []) as $label => $value)
+                <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
+                    <p class="text-sm font-extrabold text-slate-500">{{ $label }}</p>
+                    <p class="mt-2 text-3xl font-extrabold text-[#1b2b3f]">{{ $value }}</p>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="mx-8 grid gap-5 xl:grid-cols-3">
+            @foreach ([
+                'Status SKTM' => ($module['sktmStatus'] ?? collect()),
+                'Status Surat Masuk' => ($module['suratMasukStatus'] ?? collect()),
+                'Status Surat Keluar' => ($module['suratKeluarStatus'] ?? collect()),
+            ] as $title => $items)
+                <article class="rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
+                    <h4 class="border-b border-slate-200 px-5 py-4 text-base font-extrabold text-slate-800">{{ $title }}</h4>
+                    <div class="divide-y divide-slate-100">
+                        @forelse ($items as $status => $total)
+                            <div class="flex items-center justify-between px-5 py-3 text-sm font-bold">
+                                <span class="text-slate-600">{{ Str::title(str_replace('_', ' ', $status)) }}</span>
+                                <span class="text-[#2379d7]">{{ $total }}</span>
+                            </div>
+                        @empty
+                            <p class="px-5 py-6 text-sm font-semibold text-slate-500">Belum ada data.</p>
+                        @endforelse
+                    </div>
+                </article>
+            @endforeach
+        </div>
+    @else
+
     @if ($canCreate && $type !== 'laporan')
-        <form x-show="showForm" method="POST" action="{{ route('dashboard.section.store', $activeSection) }}" class="mx-8 rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
+        <form x-show="showForm" method="POST" enctype="multipart/form-data" action="{{ route('dashboard.section.store', $activeSection) }}" class="mx-8 rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
             @csrf
             <div class="mb-4 flex items-center justify-between">
                 <h4 class="text-[16px] font-extrabold text-slate-800">{{ $buttonLabel }}</h4>
@@ -166,12 +205,14 @@
                     </select>
                     <textarea name="isi_instruksi" placeholder="Isi instruksi" class="{{ $input }} min-h-20 md:col-span-2 xl:col-span-4" required></textarea>
                 @elseif ($type === 'permohonan-sktm')
-                    <select name="masyarakat_id" class="{{ $input }}" required>
-                        <option value="">Pilih masyarakat</option>
-                        @foreach (($module['masyarakat'] ?? []) as $masyarakat)
-                            <option value="{{ $masyarakat->id }}">{{ $masyarakat->nik }} - {{ $masyarakat->nama_lengkap }}</option>
-                        @endforeach
-                    </select>
+                    @if ($role !== App\Models\User::ROLE_MASYARAKAT)
+                        <select name="masyarakat_id" class="{{ $input }}" required>
+                            <option value="">Pilih masyarakat</option>
+                            @foreach (($module['masyarakat'] ?? []) as $masyarakat)
+                                <option value="{{ $masyarakat->id }}">{{ $masyarakat->nik }} - {{ $masyarakat->nama_lengkap }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                     <textarea name="keperluan" placeholder="Keperluan pengajuan" class="{{ $input }} min-h-20 md:col-span-2 xl:col-span-2" required></textarea>
                     <textarea name="catatan" placeholder="Catatan opsional" class="{{ $input }} min-h-20 md:col-span-2 xl:col-span-2"></textarea>
                 @elseif ($type === 'dokumen-saya')
@@ -187,8 +228,8 @@
                         <option value="Surat Pengantar RT">Surat Pengantar RT</option>
                         <option value="Dokumen Pendukung Lain">Dokumen Pendukung Lain</option>
                     </select>
-                    <input name="nama_file" placeholder="Nama file" class="{{ $input }}" required>
-                    <input name="path_file" placeholder="Path file / nama dokumen" class="{{ $input }}" required>
+                    <input name="nama_file" placeholder="Nama file" class="{{ $input }}">
+                    <input name="dokumen_file" type="file" class="{{ $input }} p-2" required>
                 @elseif ($type === 'penerbitan-sktm')
                     <select name="permohonan_sktm_id" class="{{ $input }}" required>
                         <option value="">Pilih permohonan disetujui</option>
@@ -198,13 +239,14 @@
                     </select>
                     <input name="nomor_surat" placeholder="Nomor surat SKTM" class="{{ $input }}" required>
                     <input name="tanggal_terbit" type="date" class="{{ $input }}" required>
+                    <input name="masa_berlaku" type="date" class="{{ $input }}">
                     <input name="pejabat_penandatangan" placeholder="Pejabat penandatangan" class="{{ $input }}" required>
                 @elseif ($type === 'arsip-surat')
                     <input name="jenis_arsip" placeholder="Jenis arsip" class="{{ $input }}" required>
                     <input name="judul_dokumen" placeholder="Judul dokumen" class="{{ $input }}" required>
                     <input name="nomor_dokumen" placeholder="Nomor dokumen" class="{{ $input }}">
                     <input name="tanggal_dokumen" type="date" class="{{ $input }}">
-                    <input name="file_dokumen" placeholder="File dokumen" class="{{ $input }}">
+                    <input name="arsip_file" type="file" class="{{ $input }} p-2">
                     <textarea name="keterangan" placeholder="Keterangan" class="{{ $input }} min-h-20 md:col-span-2 xl:col-span-4"></textarea>
                 @endif
             </div>
@@ -231,6 +273,10 @@
                         <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
+            @endif
+
+            @if ($type === 'penerbitan-sktm')
+                <input name="tahun" value="{{ request('tahun') }}" placeholder="Tahun" class="{{ $input }} w-full lg:w-[130px]">
             @endif
 
             <button class="h-11 rounded-md border border-slate-300 px-5 text-sm font-extrabold text-slate-700 hover:bg-slate-50">Filter</button>
@@ -263,19 +309,49 @@
                                 </td>
                                 <td class="px-6 py-5">
                                     <div class="flex justify-center gap-4 text-slate-500">
-                                        <button type="button" class="hover:text-[#2379d7]" title="Detail">
-                                            <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M12 5c-6 0-9.5 7-9.5 7S6 19 12 19s9.5-7 9.5-7S18 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" /></svg>
-                                        </button>
-                                        <button type="button" class="hover:text-[#2379d7]" title="Edit">
-                                            <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="m4 17.2-.8 3.6 3.6-.8L18.9 7.9 16.1 5.1 4 17.2ZM20.7 6.1a1 1 0 0 0 0-1.4l-1.4-1.4a1 1 0 0 0-1.4 0l-.8.8 2.8 2.8.8-.8Z" /></svg>
-                                        </button>
-                                        <form method="POST" action="{{ route('dashboard.section.destroy', [$activeSection, $record->id]) }}">
+                                        <details class="text-left">
+                                            <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Detail</summary>
+                                            <div class="mt-3 min-w-[360px] rounded-lg border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-600 shadow-lg">
+                                                <p>Nomor Surat: {{ $record->nomor_surat }}</p>
+                                                <p>Tanggal Surat: {{ $record->tanggal_surat?->format('d/m/Y') }}</p>
+                                                <p>Keterangan: {{ $record->keterangan ?: '-' }}</p>
+                                            </div>
+                                        </details>
+                                        <details class="text-left">
+                                            <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Edit</summary>
+                                            <form method="POST" action="{{ route('dashboard.surat-masuk.update', $record) }}" class="mt-3 grid min-w-[520px] gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-lg">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input name="nomor_agenda" value="{{ $record->nomor_agenda }}" class="{{ $input }}" required>
+                                                <input name="nomor_surat" value="{{ $record->nomor_surat }}" class="{{ $input }}" required>
+                                                <input name="asal_surat" value="{{ $record->asal_surat }}" class="{{ $input }}" required>
+                                                <input name="perihal" value="{{ $record->perihal }}" class="{{ $input }}" required>
+                                                <input name="tanggal_surat" type="date" value="{{ $record->tanggal_surat?->format('Y-m-d') }}" class="{{ $input }}" required>
+                                                <input name="tanggal_diterima" type="date" value="{{ $record->tanggal_diterima?->format('Y-m-d') }}" class="{{ $input }}" required>
+                                                <select name="status" class="{{ $input }}" required>
+                                                    @foreach ($statusOptions as $value => $label)
+                                                        <option value="{{ $value }}" @selected($record->status === $value)>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <textarea name="isi_ringkas" class="{{ $input }} min-h-20">{{ $record->isi_ringkas }}</textarea>
+                                                <button class="h-10 rounded bg-[#2379d7] px-4 text-sm font-extrabold text-white">Simpan Edit</button>
+                                            </form>
+                                        </details>
+                                        <form method="POST" action="{{ route('dashboard.surat-masuk.reply', $record) }}">
                                             @csrf
-                                            @method('DELETE')
-                                            <button class="hover:text-red-600" title="Hapus">
-                                                <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7ZM9 4h6l1 2H8l1-2Z" /></svg>
+                                            <button class="hover:text-[#2379d7]" title="Buat Balasan">
+                                                <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M4 4h11l5 5v11H4V4Zm10 1.5V10h4.5L14 5.5ZM7 13h8v-2H7v2Zm0 4h10v-2H7v2Z" /></svg>
                                             </button>
                                         </form>
+                                        @if ($canDelete)
+                                            <form method="POST" action="{{ route('dashboard.section.destroy', [$activeSection, $record->id]) }}" onsubmit="return confirm('Hapus data ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="hover:text-red-600" title="Hapus">
+                                                    <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7ZM9 4h6l1 2H8l1-2Z" /></svg>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -309,11 +385,11 @@
                                 $detail = match ($type) {
                                     'users' => ($record->username ?: '-').' - '.$record->email,
                                     'masyarakat' => $record->nik.' - '.$record->desa,
-                                    'surat-keluar' => $record->tujuan_surat.' - '.$record->perihal,
+                                    'surat-keluar' => $record->tujuan_surat.' - '.$record->perihal.(optional($record->suratMasuk)->nomor_surat ? ' - Ref: '.$record->suratMasuk->nomor_surat : ''),
                                     'disposisi-surat' => optional($record->suratMasuk)->perihal.' - '.$record->tujuan_disposisi,
                                     'permohonan-sktm', 'verifikasi-sktm' => $record->nama_pemohon.' - '.$record->keperluan,
                                     'dokumen-saya' => $record->nama_file,
-                                    'penerbitan-sktm' => optional($record->permohonanSktm)->nama_pemohon.' - '.$record->tanggal_terbit?->format('d/m/Y'),
+                                    'penerbitan-sktm' => optional($record->permohonanSktm)->nama_pemohon.' - '.$record->tanggal_terbit?->format('d/m/Y').' - Berlaku: '.($record->masa_berlaku?->format('d/m/Y') ?: '-'),
                                     'arsip-surat' => $record->jenis_arsip.' - '.$record->nomor_dokumen,
                                     default => '-',
                                 };
@@ -328,27 +404,109 @@
                                 <td class="px-6 py-5">
                                     <div class="flex justify-center gap-4 text-slate-500">
                                         @if ($type === 'verifikasi-sktm')
-                                            <form method="POST" action="{{ route('dashboard.permohonan.verify', $record) }}" class="flex gap-2">
+                                            <form method="POST" action="{{ route('dashboard.permohonan.verify', $record) }}" class="flex flex-wrap gap-2">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input name="catatan" placeholder="Catatan" class="h-9 w-28 rounded border-slate-300 text-xs">
+                                                @foreach ($record->dokumen as $dokumen)
+                                                    <a href="{{ asset('storage/'.$dokumen->path_file) }}" target="_blank" class="h-9 rounded bg-blue-50 px-3 py-2 text-xs font-bold text-[#2379d7]">{{ $dokumen->jenis_dokumen }}</a>
+                                                @endforeach
                                                 <button name="status" value="disetujui" class="h-9 rounded bg-emerald-600 px-3 text-xs font-bold text-white">Setujui</button>
                                                 <button name="status" value="ditolak" class="h-9 rounded bg-red-600 px-3 text-xs font-bold text-white">Tolak</button>
                                             </form>
-                                        @elseif ($type !== 'laporan')
-                                            <button type="button" class="hover:text-[#2379d7]" title="Detail">
-                                                <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M12 5c-6 0-9.5 7-9.5 7S6 19 12 19s9.5-7 9.5-7S18 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" /></svg>
-                                            </button>
-                                            <button type="button" class="hover:text-[#2379d7]" title="Edit">
-                                                <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="m4 17.2-.8 3.6 3.6-.8L18.9 7.9 16.1 5.1 4 17.2ZM20.7 6.1a1 1 0 0 0 0-1.4l-1.4-1.4a1 1 0 0 0-1.4 0l-.8.8 2.8 2.8.8-.8Z" /></svg>
-                                            </button>
-                                            <form method="POST" action="{{ route('dashboard.section.destroy', [$activeSection, $record->id]) }}">
+                                        @else
+                                            <details class="text-left">
+                                                <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Detail</summary>
+                                                <div class="mt-3 min-w-[360px] rounded-lg border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-600 shadow-lg">
+                                                    <p>{{ $title }}</p>
+                                                    <p>{{ $detail }}</p>
+                                                    <p>Status: {{ Str::title(str_replace('_', ' ', $status)) }}</p>
+                                                </div>
+                                            </details>
+
+                                            @if ($type === 'masyarakat')
+                                                <details class="text-left">
+                                                    <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Edit</summary>
+                                                    <form method="POST" action="{{ route('dashboard.masyarakat.update', $record) }}" class="mt-3 grid min-w-[520px] gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-lg">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input name="nik" value="{{ $record->nik }}" class="{{ $input }}" required>
+                                                        <input name="nama_lengkap" value="{{ $record->nama_lengkap }}" class="{{ $input }}" required>
+                                                        <input name="tempat_lahir" value="{{ $record->tempat_lahir }}" class="{{ $input }}">
+                                                        <input name="tanggal_lahir" type="date" value="{{ $record->tanggal_lahir?->format('Y-m-d') }}" class="{{ $input }}">
+                                                        <input name="desa" value="{{ $record->desa }}" class="{{ $input }}">
+                                                        <input name="kecamatan" value="{{ $record->kecamatan }}" class="{{ $input }}">
+                                                        <input name="no_hp" value="{{ $record->no_hp }}" class="{{ $input }}">
+                                                        <textarea name="alamat" class="{{ $input }} min-h-20">{{ $record->alamat }}</textarea>
+                                                        <button class="h-10 rounded bg-[#2379d7] px-4 text-sm font-extrabold text-white">Simpan Edit</button>
+                                                    </form>
+                                                </details>
+                                            @endif
+
+                                            @if ($type === 'permohonan-sktm')
+                                                <details class="text-left">
+                                                    <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Edit</summary>
+                                                    <form method="POST" action="{{ route('dashboard.permohonan.update', $record) }}" class="mt-3 grid min-w-[520px] gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-lg">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <textarea name="keperluan" class="{{ $input }} min-h-20" required>{{ $record->keperluan }}</textarea>
+                                                        <textarea name="catatan" class="{{ $input }} min-h-20">{{ $record->catatan }}</textarea>
+                                                        @if ($role !== App\Models\User::ROLE_MASYARAKAT)
+                                                            <select name="status" class="{{ $input }}">
+                                                                @foreach ($statusOptions as $value => $label)
+                                                                    <option value="{{ $value }}" @selected($record->status === $value)>{{ $label }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        @endif
+                                                        <button class="h-10 rounded bg-[#2379d7] px-4 text-sm font-extrabold text-white">Simpan Edit</button>
+                                                    </form>
+                                                </details>
+                                            @endif
+
+                                            @if ($type === 'surat-keluar')
+                                                <details class="text-left">
+                                                    <summary class="cursor-pointer rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Edit</summary>
+                                                    <form method="POST" action="{{ route('dashboard.surat-keluar.update', $record) }}" class="mt-3 grid min-w-[520px] gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-lg">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input name="nomor_agenda" value="{{ $record->nomor_agenda }}" class="{{ $input }}" required>
+                                                        <input name="nomor_surat" value="{{ $record->nomor_surat }}" class="{{ $input }}" required>
+                                                        <input name="tujuan_surat" value="{{ $record->tujuan_surat }}" class="{{ $input }}" required>
+                                                        <input name="perihal" value="{{ $record->perihal }}" class="{{ $input }}" required>
+                                                        <input name="tanggal_surat" type="date" value="{{ $record->tanggal_surat?->format('Y-m-d') }}" class="{{ $input }}" required>
+                                                        <select name="status" class="{{ $input }}" required>
+                                                            @foreach (['draft' => 'Draft', 'diterbitkan' => 'Diterbitkan', 'dikirim' => 'Dikirim', 'diarsipkan' => 'Diarsipkan'] as $value => $label)
+                                                                <option value="{{ $value }}" @selected($record->status === $value)>{{ $label }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <textarea name="isi_ringkas" class="{{ $input }} min-h-20">{{ $record->isi_ringkas }}</textarea>
+                                                        <button class="h-10 rounded bg-[#2379d7] px-4 text-sm font-extrabold text-white">Simpan Edit</button>
+                                                    </form>
+                                                </details>
+                                            @endif
+
+                                            @if ($type === 'dokumen-saya' && $record->path_file)
+                                                <a href="{{ Str::startsWith($record->path_file, ['http://', 'https://']) ? $record->path_file : asset('storage/'.$record->path_file) }}" target="_blank" class="rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">File</a>
+                                            @endif
+
+                                            @if ($type === 'arsip-surat' && $record->file_dokumen)
+                                                <a href="{{ Str::startsWith($record->file_dokumen, ['http://', 'https://']) ? $record->file_dokumen : asset('storage/'.$record->file_dokumen) }}" target="_blank" class="rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">File</a>
+                                            @endif
+
+                                            @if ($type === 'penerbitan-sktm')
+                                                <a href="{{ route('dashboard.penerbitan-sktm.print', $record) }}" target="_blank" class="rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">Cetak</a>
+                                                <a href="{{ route('dashboard.penerbitan-sktm.download', $record) }}" class="rounded bg-blue-50 px-3 py-2 text-xs font-extrabold text-[#2379d7]">PDF</a>
+                                            @endif
+
+                                            @if ($canDelete)
+                                            <form method="POST" action="{{ route('dashboard.section.destroy', [$activeSection, $record->id]) }}" onsubmit="return confirm('Hapus data ini?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="hover:text-red-600" title="Hapus">
                                                     <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current"><path d="M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7ZM9 4h6l1 2H8l1-2Z" /></svg>
                                                 </button>
                                             </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
@@ -364,5 +522,6 @@
 
     @if (method_exists($records, 'links'))
         <div class="px-8 pb-6">{{ $records->links() }}</div>
+    @endif
     @endif
 </section>
