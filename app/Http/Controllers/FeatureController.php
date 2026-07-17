@@ -62,21 +62,29 @@ class FeatureController extends Controller
 
     public function verify(Request $request, PermohonanSktm $permohonan): RedirectResponse
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_KEPALA_KECAMATAN]), 403);
+
+        if ($request->user()->hasRole(User::ROLE_KEPALA_KECAMATAN)) {
+            abort_unless($permohonan->status === PermohonanSktm::STATUS_DIVERIFIKASI, 409);
+        }
+
+        $statuses = $request->user()->hasRole(User::ROLE_KEPALA_KECAMATAN)
+            ? [PermohonanSktm::STATUS_DISETUJUI, PermohonanSktm::STATUS_DITOLAK]
+            : [PermohonanSktm::STATUS_DIVERIFIKASI];
 
         $data = $request->validate([
-            'status' => ['required', Rule::in([PermohonanSktm::STATUS_DISETUJUI, PermohonanSktm::STATUS_DITOLAK, PermohonanSktm::STATUS_DIVERIFIKASI])],
+            'status' => ['required', Rule::in($statuses)],
             'catatan' => ['nullable', 'required_if:status,'.PermohonanSktm::STATUS_DITOLAK, 'string'],
         ]);
 
         $permohonan->update($data);
 
-        return back()->with('status', 'Status verifikasi berhasil diperbarui.');
+        return back()->with('status', 'Status pengajuan berhasil diperbarui.');
     }
 
     public function replyToIncoming(Request $request, SuratMasuk $suratMasuk): RedirectResponse
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole(User::ROLE_ADMIN), 403);
 
         $stamp = now()->format('YmdHis');
 
@@ -99,7 +107,7 @@ class FeatureController extends Controller
 
     public function updateSuratKeluar(Request $request, SuratKeluar $suratKeluar): RedirectResponse
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole(User::ROLE_ADMIN), 403);
 
         $data = $request->validate([
             'nomor_agenda' => ['required', 'string', 'max:255', Rule::unique('surat_keluar', 'nomor_agenda')->ignore($suratKeluar->id)],
@@ -119,7 +127,7 @@ class FeatureController extends Controller
 
     public function updateSuratMasuk(Request $request, SuratMasuk $suratMasuk): RedirectResponse
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole(User::ROLE_ADMIN), 403);
 
         $suratMasuk->update($request->validate([
             'nomor_agenda' => ['required', 'string', 'max:255', Rule::unique('surat_masuk', 'nomor_agenda')->ignore($suratMasuk->id)],
@@ -138,7 +146,11 @@ class FeatureController extends Controller
 
     public function updateMasyarakat(Request $request, Masyarakat $masyarakat): RedirectResponse
     {
-        abort_if($request->user()->hasRole(User::ROLE_MASYARAKAT) && $masyarakat->user_id !== $request->user()->id, 403);
+        abort_unless(
+            $request->user()->hasRole(User::ROLE_ADMIN)
+            || ($request->user()->hasRole(User::ROLE_MASYARAKAT) && $masyarakat->user_id === $request->user()->id),
+            403
+        );
 
         $masyarakat->update($request->validate([
             'nik' => ['required', 'string', 'max:32', Rule::unique('masyarakat', 'nik')->ignore($masyarakat->id)],
@@ -161,18 +173,16 @@ class FeatureController extends Controller
 
     public function updatePermohonan(Request $request, PermohonanSktm $permohonan): RedirectResponse
     {
-        abort_if($request->user()->hasRole(User::ROLE_MASYARAKAT) && $permohonan->masyarakat->user_id !== $request->user()->id, 403);
+        abort_unless(
+            $request->user()->hasRole(User::ROLE_ADMIN)
+            || ($request->user()->hasRole(User::ROLE_MASYARAKAT) && $permohonan->masyarakat->user_id === $request->user()->id),
+            403
+        );
 
         $data = $request->validate([
             'keperluan' => ['required', 'string'],
             'catatan' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::in([
-                PermohonanSktm::STATUS_MENUNGGU,
-                PermohonanSktm::STATUS_DIVERIFIKASI,
-                PermohonanSktm::STATUS_DISETUJUI,
-                PermohonanSktm::STATUS_DITOLAK,
-                PermohonanSktm::STATUS_DITERBITKAN,
-            ])],
+            'status' => ['nullable', Rule::in([PermohonanSktm::STATUS_MENUNGGU, PermohonanSktm::STATUS_DIVERIFIKASI])],
         ]);
 
         if ($request->user()->hasRole(User::ROLE_MASYARAKAT)) {
@@ -181,16 +191,17 @@ class FeatureController extends Controller
 
         $permohonan->update($data);
 
-        return back()->with('status', 'Permohonan SKTM berhasil diperbarui.');
+        return back()->with('status', 'Permohonan Surat Keterangan Tidak Mampu berhasil diperbarui.');
     }
 
     public function printSktm(Request $request, PenerbitanSktm $penerbitan)
     {
         $penerbitan->load('permohonanSktm.masyarakat', 'penerbit');
 
-        abort_if(
-            $request->user()->hasRole(User::ROLE_MASYARAKAT)
-            && $penerbitan->permohonanSktm->masyarakat->user_id !== $request->user()->id,
+        abort_unless(
+            $request->user()->hasRole(User::ROLE_ADMIN)
+            || ($request->user()->hasRole(User::ROLE_MASYARAKAT)
+                && $penerbitan->permohonanSktm->masyarakat->user_id === $request->user()->id),
             403
         );
 
@@ -201,9 +212,10 @@ class FeatureController extends Controller
     {
         $penerbitan->load('permohonanSktm.masyarakat');
 
-        abort_if(
-            $request->user()->hasRole(User::ROLE_MASYARAKAT)
-            && $penerbitan->permohonanSktm->masyarakat->user_id !== $request->user()->id,
+        abort_unless(
+            $request->user()->hasRole(User::ROLE_ADMIN)
+            || ($request->user()->hasRole(User::ROLE_MASYARAKAT)
+                && $penerbitan->permohonanSktm->masyarakat->user_id === $request->user()->id),
             403
         );
 
@@ -211,7 +223,7 @@ class FeatureController extends Controller
             'PEMERINTAH KABUPATEN KUTAI KARTANEGARA',
             'KECAMATAN MARANGKAYU',
             'SURAT KETERANGAN TIDAK MAMPU',
-            'Nomor: '.$penerbitan->nomor_surat,
+            'Nomor: '.str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $penerbitan->nomor_surat),
             'Nama: '.$penerbitan->permohonanSktm->nama_pemohon,
             'NIK: '.$penerbitan->permohonanSktm->nik,
             'Alamat: '.$penerbitan->permohonanSktm->alamat,
@@ -229,15 +241,15 @@ class FeatureController extends Controller
 
     public function exportLaporan(Request $request)
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_KEPALA_KECAMATAN]), 403);
 
         $rows = [
             ['Jenis Data', 'Total'],
             ['Surat Masuk', SuratMasuk::count()],
             ['Surat Keluar', SuratKeluar::count()],
             ['Disposisi Surat', DisposisiSurat::count()],
-            ['Permohonan SKTM', PermohonanSktm::count()],
-            ['SKTM Terbit', PenerbitanSktm::count()],
+            ['Permohonan Surat Keterangan Tidak Mampu', PermohonanSktm::count()],
+            ['Surat Keterangan Tidak Mampu Terbit', PenerbitanSktm::count()],
             ['Arsip Dokumen', ArsipDokumen::count()],
         ];
 
@@ -419,7 +431,7 @@ class FeatureController extends Controller
 
     private function storePenerbitan(Request $request): void
     {
-        abort_unless($request->user()->hasRole([User::ROLE_ADMIN, User::ROLE_PETUGAS]), 403);
+        abort_unless($request->user()->hasRole(User::ROLE_ADMIN), 403);
 
         $data = $request->validate([
             'permohonan_sktm_id' => ['required', 'exists:permohonan_sktm,id'],
@@ -500,7 +512,7 @@ class FeatureController extends Controller
 
     private function simplePdf(string $title, array $lines): string
     {
-        $text = "BT /F1 12 Tf 50 800 Td 16 TL";
+        $text = 'BT /F1 12 Tf 50 800 Td 16 TL';
 
         foreach ([$title, ...$lines] as $line) {
             $safe = preg_replace('/[^\x20-\x7E]/', ' ', $line);
@@ -532,6 +544,6 @@ class FeatureController extends Controller
             $pdf .= sprintf("%010d 00000 n \n", $offset);
         }
 
-        return $pdf."trailer << /Size ".(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
+        return $pdf.'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
     }
 }

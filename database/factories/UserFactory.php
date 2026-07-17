@@ -43,10 +43,10 @@ class UserFactory extends Factory
         ]);
     }
 
-    public function petugas(): static
+    public function kepalaKecamatan(): static
     {
         return $this->state(fn (array $attributes) => [
-            'role' => User::ROLE_PETUGAS,
+            'role' => User::ROLE_KEPALA_KECAMATAN,
         ]);
     }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Login - Sistem Informasi Inventorisasi Surat dan Pelayanan SKTM</title>
+    <title>Login - Sistem Informasi Inventarisasi Surat dan Pelayanan Surat Keterangan Tidak Mampu</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -37,15 +37,15 @@
 
                     <h1 class="max-w-[620px] text-[30px] font-extrabold uppercase leading-[1.35] tracking-[0] text-[#16283d]">
                         Sistem Informasi<br>
-                        Inventorisasi Surat dan<br>
-                        Pelayanan SKTM<br>
+                        Inventarisasi Surat dan<br>
+                        Pelayanan Surat Keterangan Tidak Mampu<br>
                         Administrasi Berbasis Web
                     </h1>
                     <p class="mt-4 text-[23px] font-medium text-slate-800">Kecamatan Marangkayu</p>
                     <div class="mt-4 h-[2px] w-[108px] bg-[#3979bd]"></div>
                     <p class="mt-6 max-w-[520px] text-[16px] font-medium leading-8 text-slate-700">
-                        Sistem informasi untuk pengelolaan inventorisasi surat<br>
-                        dan pelayanan Surat Keterangan Tidak Mampu (SKTM)<br>
+                        Sistem informasi untuk pengelolaan inventarisasi surat<br>
+                        dan pelayanan Surat Keterangan Tidak Mampu<br>
                         secara terintegrasi, transparan dan efisien.
                     </p>
                 </div>
@@ -110,7 +110,7 @@
                                 <svg viewBox="0 0 24 24" class="mr-5 h-6 w-6 flex-none fill-slate-500" aria-hidden="true">
                                     <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.02-8 4.5V20h16v-1.5c0-2.48-3.58-4.5-8-4.5Z" />
                                 </svg>
-                                <input id="email" name="email" type="text" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Masukkan username Anda" class="h-full w-full border-0 bg-transparent p-0 text-[16px] font-medium text-slate-800 placeholder:text-slate-500 focus:ring-0">
+                                <input id="email" name="email" type="text" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Username" class="h-full w-full border-0 bg-transparent p-0 text-[16px] font-medium text-slate-800 placeholder:text-slate-500 focus:ring-0">
                             </div>
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
@@ -121,7 +121,7 @@
                                 <svg viewBox="0 0 24 24" class="mr-5 h-6 w-6 flex-none fill-slate-500" aria-hidden="true">
                                     <path d="M17 9V7A5 5 0 0 0 7 7v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1ZM9 7a3 3 0 0 1 6 0v2H9V7Zm4 10.73V19h-2v-1.27a2 2 0 1 1 2 0Z" />
                                 </svg>
-                                <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required autocomplete="current-password" placeholder="Masukkan password Anda" class="h-full w-full border-0 bg-transparent p-0 text-[16px] font-medium text-slate-800 placeholder:text-slate-500 focus:ring-0">
+                                <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required autocomplete="current-password" placeholder="Password" class="h-full w-full border-0 bg-transparent p-0 text-[16px] font-medium text-slate-800 placeholder:text-slate-500 focus:ring-0">
                                 <button type="button" class="ml-4 flex h-8 w-8 flex-none items-center justify-center rounded text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" @click="showPassword = ! showPassword" aria-label="Tampilkan password">
                                     <svg viewBox="0 0 24 24" class="h-6 w-6 fill-none stroke-current stroke-[2.2]" aria-hidden="true">
                                         <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
@@ -132,14 +132,14 @@
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <label for="remember_me" class="inline-flex items-center">
+                        <div class="flex items-center justify-between gap-4">
+                            <label for="remember_me" class="inline-flex shrink-0 items-center">
                                 <input id="remember_me" name="remember" type="checkbox" class="h-[26px] w-[26px] rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
                                 <span class="ms-3 text-[15px] font-medium text-slate-700">Ingat saya</span>
                             </label>
 
                             @if (Route::has('password.request'))
-                                <a href="{{ route('password.request') }}" class="text-[15px] font-semibold text-[#2d6bb4] hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <a href="{{ route('password.request') }}" class="text-right text-[15px] font-semibold text-[#2d6bb4] hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     Lupa password?
                                 </a>
                             @endif

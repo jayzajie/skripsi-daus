@@ -2,12 +2,15 @@
     $type = $module['type'] ?? 'dashboard';
     $records = $module['records'] ?? collect();
     $input = 'h-11 rounded-md border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-blue-500';
-    $canCreate = ! (in_array($type, ['verifikasi-sktm', 'laporan', 'penerbitan-sktm'], true) && $role === App\Models\User::ROLE_MASYARAKAT);
-    $canDelete = in_array($activeSection, ['data-pengguna', 'data-masyarakat', 'profil-saya', 'surat-masuk', 'surat-keluar', 'disposisi-surat', 'permohonan-sktm', 'dokumen-saya', 'penerbitan-sktm', 'arsip-surat'], true);
+    $canCreate = ! in_array($type, ['verifikasi-sktm', 'laporan'], true)
+        && ! ($type === 'penerbitan-sktm' && $role === App\Models\User::ROLE_MASYARAKAT)
+        && $role !== App\Models\User::ROLE_KEPALA_KECAMATAN;
+    $canDelete = $role !== App\Models\User::ROLE_KEPALA_KECAMATAN
+        && in_array($activeSection, ['data-pengguna', 'data-masyarakat', 'profil-saya', 'surat-masuk', 'surat-keluar', 'disposisi-surat', 'permohonan-sktm', 'dokumen-saya', 'penerbitan-sktm', 'arsip-surat'], true);
 
     $parentTitle = match ($type) {
-        'surat-masuk', 'surat-keluar', 'disposisi-surat' => 'Inventorisasi Surat',
-        'permohonan-sktm', 'verifikasi-sktm', 'penerbitan-sktm', 'dokumen-saya' => 'Pelayanan SKTM',
+        'surat-masuk', 'surat-keluar', 'disposisi-surat' => 'Inventarisasi Surat',
+        'permohonan-sktm', 'verifikasi-sktm', 'penerbitan-sktm', 'dokumen-saya' => 'Pelayanan Surat Keterangan Tidak Mampu',
         'users' => 'Manajemen Sistem',
         'masyarakat' => $role === App\Models\User::ROLE_MASYARAKAT ? 'Masyarakat' : 'Data Master',
         'arsip-surat' => 'Arsip & Dokumen',
@@ -21,7 +24,7 @@
         'disposisi-surat' => 'Tambah Disposisi',
         'permohonan-sktm' => 'Tambah Permohonan',
         'dokumen-saya' => 'Tambah Dokumen',
-        'penerbitan-sktm' => 'Terbitkan SKTM',
+        'penerbitan-sktm' => 'Terbitkan Surat Keterangan Tidak Mampu',
         'arsip-surat' => 'Tambah Arsip',
         'users' => 'Tambah Pengguna',
         'masyarakat' => $role === App\Models\User::ROLE_MASYARAKAT ? 'Lengkapi Profil' : 'Tambah Masyarakat',
@@ -32,7 +35,8 @@
         'surat-masuk' => ['baru' => 'Baru', 'dibaca' => 'Dibaca', 'diproses' => 'Diproses', 'selesai' => 'Selesai', 'didisposisikan' => 'Didisposisikan', 'diarsipkan' => 'Diarsipkan'],
         'surat-keluar' => ['draft' => 'Draft', 'diterbitkan' => 'Diterbitkan', 'dikirim' => 'Dikirim', 'diarsipkan' => 'Diarsipkan'],
         'disposisi-surat' => ['menunggu' => 'Menunggu', 'diproses' => 'Diproses', 'selesai' => 'Selesai'],
-        'permohonan-sktm', 'verifikasi-sktm' => ['menunggu' => 'Menunggu', 'diverifikasi' => 'Diverifikasi', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak', 'diterbitkan' => 'Diterbitkan'],
+        'permohonan-sktm' => ['menunggu' => 'Menunggu', 'diverifikasi' => 'Diverifikasi'],
+        'verifikasi-sktm' => ['menunggu' => 'Menunggu', 'diverifikasi' => 'Diverifikasi', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak'],
         'users' => ['aktif' => 'Aktif', 'nonaktif' => 'Nonaktif'],
         default => [],
     };
@@ -97,7 +101,7 @@
 
         <div class="mx-8 grid gap-5 xl:grid-cols-3">
             @foreach ([
-                'Status SKTM' => ($module['sktmStatus'] ?? collect()),
+                'Status Surat Keterangan Tidak Mampu' => ($module['sktmStatus'] ?? collect()),
                 'Status Surat Masuk' => ($module['suratMasukStatus'] ?? collect()),
                 'Status Surat Keluar' => ($module['suratKeluarStatus'] ?? collect()),
             ] as $title => $items)
@@ -133,7 +137,7 @@
                     <input name="email" type="email" placeholder="Email" class="{{ $input }}" required>
                     <select name="role" class="{{ $input }}" required>
                         <option value="admin">Admin</option>
-                        <option value="petugas">Petugas</option>
+                        <option value="kepala_kecamatan">Kepala Kecamatan</option>
                         <option value="masyarakat">Masyarakat</option>
                     </select>
                     <select name="status" class="{{ $input }}" required>
@@ -219,7 +223,7 @@
                     <select name="permohonan_sktm_id" class="{{ $input }}" required>
                         <option value="">Pilih permohonan</option>
                         @foreach (($module['permohonan'] ?? []) as $permohonan)
-                            <option value="{{ $permohonan->id }}">{{ $permohonan->nomor_pengajuan }}</option>
+                            <option value="{{ $permohonan->id }}">{{ str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $permohonan->nomor_pengajuan) }}</option>
                         @endforeach
                     </select>
                     <select name="jenis_dokumen" class="{{ $input }}" required>
@@ -234,10 +238,10 @@
                     <select name="permohonan_sktm_id" class="{{ $input }}" required>
                         <option value="">Pilih permohonan disetujui</option>
                         @foreach (($module['permohonan'] ?? []) as $permohonan)
-                            <option value="{{ $permohonan->id }}">{{ $permohonan->nomor_pengajuan }} - {{ $permohonan->nama_pemohon }}</option>
+                            <option value="{{ $permohonan->id }}">{{ str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $permohonan->nomor_pengajuan) }} - {{ $permohonan->nama_pemohon }}</option>
                         @endforeach
                     </select>
-                    <input name="nomor_surat" placeholder="Nomor surat SKTM" class="{{ $input }}" required>
+                    <input name="nomor_surat" placeholder="Nomor Surat Keterangan Tidak Mampu" class="{{ $input }}" required>
                     <input name="tanggal_terbit" type="date" class="{{ $input }}" required>
                     <input name="masa_berlaku" type="date" class="{{ $input }}">
                     <input name="pejabat_penandatangan" placeholder="Pejabat penandatangan" class="{{ $input }}" required>
@@ -263,7 +267,7 @@
                 <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 fill-slate-400" aria-hidden="true">
                     <path d="M10.5 4a6.5 6.5 0 1 0 4 11.6l4 4 1.4-1.4-4-4A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" />
                 </svg>
-                <input name="q" value="{{ request('q') }}" placeholder="Cari {{ strtolower($currentTitle) }}..." class="{{ $input }} w-full pl-12">
+                <input name="q" value="{{ request('q') }}" placeholder="{{ $type === 'verifikasi-sktm' ? 'Cari pengajuan...' : 'Cari '.strtolower($currentTitle).'...' }}" class="{{ $input }} w-full pl-12">
             </div>
 
             @if ($statusOptions)
@@ -282,7 +286,39 @@
             <button class="h-11 rounded-md border border-slate-300 px-5 text-sm font-extrabold text-slate-700 hover:bg-slate-50">Filter</button>
         </form>
 
-        <div class="overflow-x-auto">
+        @if ($type === 'verifikasi-sktm')
+            <div class="divide-y divide-slate-100 md:hidden">
+                @forelse ($records as $record)
+                    <article class="space-y-4 p-5">
+                        <div>
+                            <p class="font-extrabold text-slate-700">{{ str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->nomor_pengajuan) }}</p>
+                            <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">{{ $record->nama_pemohon }} - {{ $record->keperluan }}</p>
+                        </div>
+                        <span class="{{ $statusBadge($record->status) }} inline-block rounded-md px-3 py-1.5 text-xs font-extrabold">{{ Str::title($record->status) }}</span>
+                        <form method="POST" action="{{ route('dashboard.permohonan.verify', $record) }}" class="grid gap-3">
+                            @csrf
+                            @method('PATCH')
+                            <input name="catatan" placeholder="Catatan" class="h-10 rounded border-slate-300 text-sm">
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($record->dokumen as $dokumen)
+                                    <a href="{{ asset('storage/'.$dokumen->path_file) }}" target="_blank" class="h-9 rounded bg-blue-50 px-3 py-2 text-xs font-bold text-[#2379d7]">{{ $dokumen->jenis_dokumen }}</a>
+                                @endforeach
+                                @if ($role === App\Models\User::ROLE_KEPALA_KECAMATAN)
+                                    <button name="status" value="disetujui" class="h-9 rounded bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">Setujui</button>
+                                    <button name="status" value="ditolak" class="h-9 rounded bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">Tolak</button>
+                                @else
+                                    <button name="status" value="diverifikasi" class="h-9 rounded bg-[#2379d7] px-3 text-xs font-bold text-white">Verifikasi Berkas</button>
+                                @endif
+                            </div>
+                        </form>
+                    </article>
+                @empty
+                    <p class="px-5 py-10 text-center font-semibold text-slate-500">Belum ada data.</p>
+                @endforelse
+            </div>
+        @endif
+
+        <div class="{{ $type === 'verifikasi-sktm' ? 'hidden md:block' : 'overflow-x-auto' }}">
             <table class="min-w-full divide-y divide-slate-200 text-left text-[14px]">
                 @if ($type === 'surat-masuk')
                     <thead class="bg-slate-50 text-[13px] font-extrabold text-slate-700">
@@ -374,23 +410,23 @@
                                 $title = match ($type) {
                                     'users' => $record->name,
                                     'masyarakat' => $record->nama_lengkap,
-                                    'surat-keluar' => $record->nomor_surat,
+                                    'surat-keluar' => str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->nomor_surat),
                                     'disposisi-surat' => $record->nomor_disposisi,
-                                    'permohonan-sktm', 'verifikasi-sktm' => $record->nomor_pengajuan,
+                                    'permohonan-sktm', 'verifikasi-sktm' => str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->nomor_pengajuan),
                                     'dokumen-saya' => $record->jenis_dokumen,
-                                    'penerbitan-sktm' => $record->nomor_surat,
+                                    'penerbitan-sktm' => str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->nomor_surat),
                                     'arsip-surat' => $record->judul_dokumen,
                                     default => '-',
                                 };
                                 $detail = match ($type) {
                                     'users' => ($record->username ?: '-').' - '.$record->email,
                                     'masyarakat' => $record->nik.' - '.$record->desa,
-                                    'surat-keluar' => $record->tujuan_surat.' - '.$record->perihal.(optional($record->suratMasuk)->nomor_surat ? ' - Ref: '.$record->suratMasuk->nomor_surat : ''),
+                                    'surat-keluar' => str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->tujuan_surat.' - '.$record->perihal.(optional($record->suratMasuk)->nomor_surat ? ' - Ref: '.$record->suratMasuk->nomor_surat : '')),
                                     'disposisi-surat' => optional($record->suratMasuk)->perihal.' - '.$record->tujuan_disposisi,
                                     'permohonan-sktm', 'verifikasi-sktm' => $record->nama_pemohon.' - '.$record->keperluan,
                                     'dokumen-saya' => $record->nama_file,
                                     'penerbitan-sktm' => optional($record->permohonanSktm)->nama_pemohon.' - '.$record->tanggal_terbit?->format('d/m/Y').' - Berlaku: '.($record->masa_berlaku?->format('d/m/Y') ?: '-'),
-                                    'arsip-surat' => $record->jenis_arsip.' - '.$record->nomor_dokumen,
+                                    'arsip-surat' => str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $record->jenis_arsip.' - '.$record->nomor_dokumen),
                                     default => '-',
                                 };
                                 $status = $type === 'users' ? $record->status : ($record->status ?? $record->role ?? $record->status_data ?? '-');
@@ -411,8 +447,12 @@
                                                 @foreach ($record->dokumen as $dokumen)
                                                     <a href="{{ asset('storage/'.$dokumen->path_file) }}" target="_blank" class="h-9 rounded bg-blue-50 px-3 py-2 text-xs font-bold text-[#2379d7]">{{ $dokumen->jenis_dokumen }}</a>
                                                 @endforeach
-                                                <button name="status" value="disetujui" class="h-9 rounded bg-emerald-600 px-3 text-xs font-bold text-white">Setujui</button>
-                                                <button name="status" value="ditolak" class="h-9 rounded bg-red-600 px-3 text-xs font-bold text-white">Tolak</button>
+                                                @if ($role === App\Models\User::ROLE_KEPALA_KECAMATAN)
+                                                    <button name="status" value="disetujui" class="h-9 rounded bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">Setujui</button>
+                                                    <button name="status" value="ditolak" class="h-9 rounded bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">Tolak</button>
+                                                @else
+                                                    <button name="status" value="diverifikasi" class="h-9 rounded bg-[#2379d7] px-3 text-xs font-bold text-white">Verifikasi Berkas</button>
+                                                @endif
                                             </form>
                                         @else
                                             <details class="text-left">

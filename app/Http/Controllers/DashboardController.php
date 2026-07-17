@@ -48,16 +48,9 @@ class DashboardController extends Controller
                 'penerbitan-sktm',
                 'laporan',
             ],
-            User::ROLE_PETUGAS => [
+            User::ROLE_KEPALA_KECAMATAN => [
                 'dashboard',
-                'data-masyarakat',
-                'surat-masuk',
-                'surat-keluar',
-                'disposisi-surat',
-                'arsip-surat',
-                'permohonan-sktm',
                 'verifikasi-sktm',
-                'penerbitan-sktm',
                 'laporan',
             ],
             default => [
@@ -180,7 +173,9 @@ class DashboardController extends Controller
             'verifikasi-sktm' => [
                 'type' => 'verifikasi-sktm',
                 'records' => PermohonanSktm::with('masyarakat', 'dokumen')
-                    ->whereIn('status', [PermohonanSktm::STATUS_MENUNGGU, PermohonanSktm::STATUS_DIVERIFIKASI])
+                    ->where('status', $user->hasRole(User::ROLE_KEPALA_KECAMATAN)
+                        ? PermohonanSktm::STATUS_DIVERIFIKASI
+                        : PermohonanSktm::STATUS_MENUNGGU)
                     ->when($status, fn ($query) => $query->where('status', $status))
                     ->latest()
                     ->paginate(10)
@@ -216,8 +211,8 @@ class DashboardController extends Controller
                     'Surat Masuk' => SuratMasuk::count(),
                     'Surat Keluar' => SuratKeluar::count(),
                     'Disposisi Surat' => DisposisiSurat::count(),
-                    'Permohonan SKTM' => PermohonanSktm::count(),
-                    'SKTM Terbit' => PenerbitanSktm::count(),
+                    'Permohonan Surat Keterangan Tidak Mampu' => PermohonanSktm::count(),
+                    'Surat Keterangan Tidak Mampu Terbit' => PenerbitanSktm::count(),
                     'Arsip Dokumen' => ArsipDokumen::count(),
                 ],
                 'sktmStatus' => PermohonanSktm::query()

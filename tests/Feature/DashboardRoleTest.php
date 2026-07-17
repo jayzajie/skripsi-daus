@@ -18,21 +18,22 @@ class DashboardRoleTest extends TestCase
             ->get('/dashboard')
             ->assertOk()
             ->assertSee('Manajemen User')
-            ->assertSee('Inventorisasi Surat')
-            ->assertSee('Pelayanan SKTM')
+            ->assertSee('Inventarisasi Surat')
+            ->assertSee('Pelayanan Surat Keterangan Tidak Mampu')
             ->assertSee('Laporan');
     }
 
-    public function test_petugas_dashboard_hides_admin_only_menu(): void
+    public function test_kepala_kecamatan_dashboard_matches_assigned_access(): void
     {
-        $user = User::factory()->petugas()->create();
+        $user = User::factory()->kepalaKecamatan()->create();
 
         $this->actingAs($user)
             ->get('/dashboard')
             ->assertOk()
             ->assertDontSee('Manajemen User')
-            ->assertSee('Surat Masuk')
-            ->assertSee('Verifikasi');
+            ->assertDontSee('/dashboard/surat-masuk', false)
+            ->assertSee('Pengajuan Surat Keterangan Tidak Mampu')
+            ->assertSee('Laporan');
     }
 
     public function test_masyarakat_dashboard_shows_sktm_self_service_menus(): void
@@ -42,7 +43,7 @@ class DashboardRoleTest extends TestCase
         $this->actingAs($user)
             ->get('/dashboard')
             ->assertOk()
-            ->assertSee('Ajukan SKTM')
+            ->assertSee('Ajukan Surat Keterangan Tidak Mampu')
             ->assertSee('Dokumen Saya')
             ->assertSee('Status Pengajuan')
             ->assertDontSee('Manajemen User');
@@ -54,6 +55,15 @@ class DashboardRoleTest extends TestCase
 
         $this->actingAs($user)
             ->get('/dashboard/data-pengguna')
+            ->assertForbidden();
+    }
+
+    public function test_kepala_kecamatan_cannot_open_inventory_sections_directly(): void
+    {
+        $user = User::factory()->kepalaKecamatan()->create();
+
+        $this->actingAs($user)
+            ->get('/dashboard/surat-masuk')
             ->assertForbidden();
     }
 }

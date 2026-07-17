@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
 
         $users = [
             ['name' => 'Admin', 'username' => 'admin', 'email' => 'admin@example.com', 'role' => User::ROLE_ADMIN],
-            ['name' => 'Petugas', 'username' => 'petugas', 'email' => 'petugas@example.com', 'role' => User::ROLE_PETUGAS],
+            ['name' => 'Kepala Kecamatan', 'username' => 'kepala_kecamatan', 'email' => 'kepala.kecamatan@example.com', 'role' => User::ROLE_KEPALA_KECAMATAN],
             ['name' => 'Masyarakat', 'username' => 'masyarakat', 'email' => 'masyarakat@example.com', 'role' => User::ROLE_MASYARAKAT],
         ];
 
@@ -142,10 +142,10 @@ class DatabaseSeeder extends Seeder
             ['jenis_arsip' => 'SKTM', 'nomor_dokumen' => '470/041/SKTM/Kec-MRK/V/2024'],
             [
                 'referensi_id' => $permohonan->id,
-                'judul_dokumen' => 'Arsip SKTM Budi Santoso',
+                'judul_dokumen' => 'Arsip Surat Keterangan Tidak Mampu Budi Santoso',
                 'tanggal_dokumen' => '2024-05-21',
                 'file_dokumen' => 'arsip/sktm-budi.pdf',
-                'keterangan' => 'Arsip SKTM diterbitkan.',
+                'keterangan' => 'Arsip Surat Keterangan Tidak Mampu diterbitkan.',
                 'created_by' => $admin?->id,
             ],
         );

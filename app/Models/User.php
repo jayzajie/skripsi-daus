@@ -16,13 +16,13 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
 
-    public const ROLE_PETUGAS = 'petugas';
+    public const ROLE_KEPALA_KECAMATAN = 'kepala_kecamatan';
 
     public const ROLE_MASYARAKAT = 'masyarakat';
 
     public const ROLES = [
         self::ROLE_ADMIN,
-        self::ROLE_PETUGAS,
+        self::ROLE_KEPALA_KECAMATAN,
         self::ROLE_MASYARAKAT,
     ];
 
@@ -72,7 +72,7 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             self::ROLE_ADMIN => 'Admin',
-            self::ROLE_PETUGAS => 'Petugas',
+            self::ROLE_KEPALA_KECAMATAN => 'Kepala Kecamatan',
             default => 'Masyarakat',
         };
     }

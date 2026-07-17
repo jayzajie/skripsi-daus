@@ -91,9 +91,9 @@ class FeatureImplementationTest extends TestCase
             ->assertDontSee('Pilih masyarakat');
     }
 
-    public function test_petugas_can_verify_permohonan(): void
+    public function test_kepala_kecamatan_can_decide_verified_application_but_cannot_edit_it(): void
     {
-        $petugas = User::factory()->petugas()->create();
+        $kepalaKecamatan = User::factory()->kepalaKecamatan()->create();
         $user = User::factory()->create();
         $masyarakat = Masyarakat::create([
             'user_id' => $user->id,
@@ -109,10 +109,10 @@ class FeatureImplementationTest extends TestCase
             'alamat' => $masyarakat->alamat,
             'keperluan' => 'Bantuan kesehatan',
             'tanggal_pengajuan' => '2026-06-01',
-            'status' => PermohonanSktm::STATUS_MENUNGGU,
+            'status' => PermohonanSktm::STATUS_DIVERIFIKASI,
         ]);
 
-        $this->actingAs($petugas)
+        $this->actingAs($kepalaKecamatan)
             ->patch("/dashboard/permohonan-sktm/{$permohonan->id}/verifikasi", [
                 'status' => PermohonanSktm::STATUS_DISETUJUI,
             ])
@@ -122,11 +122,38 @@ class FeatureImplementationTest extends TestCase
             'id' => $permohonan->id,
             'status' => PermohonanSktm::STATUS_DISETUJUI,
         ]);
+
+        PermohonanSktm::whereKey($permohonan->id)->update(['status' => PermohonanSktm::STATUS_DIVERIFIKASI]);
+
+        $this->actingAs($kepalaKecamatan)
+            ->patch("/dashboard/permohonan-sktm/{$permohonan->id}/verifikasi", [
+                'status' => PermohonanSktm::STATUS_DITOLAK,
+                'catatan' => 'Berkas tidak memenuhi syarat.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('permohonan_sktm', [
+            'id' => $permohonan->id,
+            'status' => PermohonanSktm::STATUS_DITOLAK,
+        ]);
+
+        $this->actingAs($kepalaKecamatan)
+            ->patch("/dashboard/permohonan-sktm/{$permohonan->id}", [
+                'keperluan' => 'Perubahan tanpa izin',
+                'status' => PermohonanSktm::STATUS_DIVERIFIKASI,
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($kepalaKecamatan)
+            ->patch("/dashboard/permohonan-sktm/{$permohonan->id}/verifikasi", [
+                'status' => PermohonanSktm::STATUS_DISETUJUI,
+            ])
+            ->assertConflict();
     }
 
-    public function test_petugas_can_create_surat_keluar_draft_from_surat_masuk(): void
+    public function test_admin_can_create_surat_keluar_draft_from_surat_masuk(): void
     {
-        $petugas = User::factory()->petugas()->create();
+        $admin = User::factory()->admin()->create();
         $suratMasuk = SuratMasuk::create([
             'nomor_agenda' => 'SM-REPLY-001',
             'nomor_surat' => '470/001/IN',
@@ -136,10 +163,10 @@ class FeatureImplementationTest extends TestCase
             'tanggal_diterima' => '2026-06-02',
             'isi_ringkas' => 'Mohon data warga.',
             'status' => 'baru',
-            'created_by' => $petugas->id,
+            'created_by' => $admin->id,
         ]);
 
-        $this->actingAs($petugas)
+        $this->actingAs($admin)
             ->post("/dashboard/surat-masuk/{$suratMasuk->id}/balasan")
             ->assertRedirect('/dashboard/surat-keluar');
 
@@ -158,7 +185,7 @@ class FeatureImplementationTest extends TestCase
     public function test_masyarakat_cannot_create_surat_keluar_reply(): void
     {
         $masyarakat = User::factory()->create();
-        $petugas = User::factory()->petugas()->create();
+        $admin = User::factory()->admin()->create();
         $suratMasuk = SuratMasuk::create([
             'nomor_agenda' => 'SM-REPLY-002',
             'nomor_surat' => '470/002/IN',
@@ -167,7 +194,7 @@ class FeatureImplementationTest extends TestCase
             'tanggal_surat' => '2026-06-01',
             'tanggal_diterima' => '2026-06-02',
             'status' => 'baru',
-            'created_by' => $petugas->id,
+            'created_by' => $admin->id,
         ]);
 
         $this->actingAs($masyarakat)
@@ -177,9 +204,9 @@ class FeatureImplementationTest extends TestCase
         $this->assertSame(0, SuratKeluar::count());
     }
 
-    public function test_petugas_can_update_surat_keluar_draft(): void
+    public function test_admin_can_update_surat_keluar_draft(): void
     {
-        $petugas = User::factory()->petugas()->create();
+        $admin = User::factory()->admin()->create();
         $suratKeluar = SuratKeluar::create([
             'nomor_agenda' => 'SK-EDIT-001',
             'nomor_surat' => 'DRAFT-001',
@@ -187,10 +214,10 @@ class FeatureImplementationTest extends TestCase
             'perihal' => 'Draft Lama',
             'tanggal_surat' => '2026-06-01',
             'status' => 'draft',
-            'created_by' => $petugas->id,
+            'created_by' => $admin->id,
         ]);
 
-        $this->actingAs($petugas)
+        $this->actingAs($admin)
             ->patch("/dashboard/surat-keluar/{$suratKeluar->id}", [
                 'nomor_agenda' => 'SK-EDIT-001',
                 'nomor_surat' => '470/099/OUT',
@@ -208,9 +235,9 @@ class FeatureImplementationTest extends TestCase
         ]);
     }
 
-    public function test_petugas_can_update_surat_masuk(): void
+    public function test_admin_can_update_surat_masuk(): void
     {
-        $petugas = User::factory()->petugas()->create();
+        $admin = User::factory()->admin()->create();
         $surat = SuratMasuk::create([
             'nomor_agenda' => 'SM-EDIT-001',
             'nomor_surat' => '470/001/OLD',
@@ -219,10 +246,10 @@ class FeatureImplementationTest extends TestCase
             'tanggal_surat' => '2026-06-01',
             'tanggal_diterima' => '2026-06-02',
             'status' => 'baru',
-            'created_by' => $petugas->id,
+            'created_by' => $admin->id,
         ]);
 
-        $this->actingAs($petugas)
+        $this->actingAs($admin)
             ->patch("/dashboard/surat-masuk/{$surat->id}", [
                 'nomor_agenda' => 'SM-EDIT-001',
                 'nomor_surat' => '470/001/NEW',
@@ -313,7 +340,7 @@ class FeatureImplementationTest extends TestCase
 
     public function test_penerbitan_sktm_can_be_printed(): void
     {
-        $petugas = User::factory()->petugas()->create();
+        $admin = User::factory()->admin()->create();
         $user = User::factory()->create();
         $masyarakat = Masyarakat::create([
             'user_id' => $user->id,
@@ -338,7 +365,7 @@ class FeatureImplementationTest extends TestCase
             'masa_berlaku' => '2026-12-03',
             'pejabat_penandatangan' => 'Camat Marangkayu',
             'status' => 'diterbitkan',
-            'diterbitkan_oleh' => $petugas->id,
+            'diterbitkan_oleh' => $admin->id,
         ]);
 
         $this->actingAs($user)

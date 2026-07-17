@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SKTM {{ $penerbitan->nomor_surat }}</title>
+    <title>Surat Keterangan Tidak Mampu {{ str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $penerbitan->nomor_surat) }}</title>
     <style>
         body { font-family: Arial, sans-serif; color: #111827; margin: 40px; }
         .kop { text-align: center; border-bottom: 3px solid #111827; padding-bottom: 14px; margin-bottom: 28px; }
@@ -27,7 +27,7 @@
     </div>
 
     <p class="judul">SURAT KETERANGAN TIDAK MAMPU</p>
-    <p style="text-align:center">Nomor: {{ $penerbitan->nomor_surat }}</p>
+    <p style="text-align:center">Nomor: {{ str_replace('SKTM', 'Surat Keterangan Tidak Mampu', $penerbitan->nomor_surat) }}</p>
 
     <p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>
 

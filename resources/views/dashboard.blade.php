@@ -25,44 +25,33 @@
         'admin' => [
             ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
             ['id' => 'data-masyarakat', 'label' => 'Data Masyarakat', 'icon' => 'id'],
-            ['label' => 'Inventorisasi Surat', 'icon' => 'mail', 'children' => [
+            ['label' => 'Inventarisasi Surat', 'icon' => 'mail', 'children' => [
                 ['id' => 'surat-masuk', 'label' => 'Surat Masuk'],
                 ['id' => 'surat-keluar', 'label' => 'Surat Keluar'],
                 ['id' => 'disposisi-surat', 'label' => 'Disposisi Surat'],
                 ]],
-                ['label' => 'Pelayanan SKTM', 'icon' => 'file', 'children' => [
-                    ['id' => 'permohonan-sktm', 'label' => 'Permohonan SKTM'],
+                ['label' => 'Pelayanan Surat Keterangan Tidak Mampu', 'icon' => 'file', 'children' => [
+                    ['id' => 'permohonan-sktm', 'label' => 'Permohonan Surat Keterangan Tidak Mampu'],
                     ['id' => 'verifikasi-sktm', 'label' => 'Verifikasi'],
-                    ['id' => 'penerbitan-sktm', 'label' => 'Penerbitan SKTM'],
+                    ['id' => 'penerbitan-sktm', 'label' => 'Penerbitan Surat Keterangan Tidak Mampu'],
                     ]],
                     ['id' => 'arsip-surat', 'label' => 'Arsip & Dokumen', 'icon' => 'archive'],
                     ['id' => 'data-pengguna', 'label' => 'Manajemen User', 'icon' => 'users'],
                     ['id' => 'laporan', 'label' => 'Laporan', 'icon' => 'report'],
                     ],
-                    'petugas' => [
+                    'kepala_kecamatan' => [
                         ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
-                        ['id' => 'data-masyarakat', 'label' => 'Data Masyarakat', 'icon' => 'id'],
-                        ['label' => 'Inventorisasi Surat', 'icon' => 'mail', 'children' => [
-                            ['id' => 'surat-masuk', 'label' => 'Surat Masuk'],
-                            ['id' => 'surat-keluar', 'label' => 'Surat Keluar'],
-                            ['id' => 'disposisi-surat', 'label' => 'Disposisi Surat'],
-                            ]],
-                            ['label' => 'Pelayanan SKTM', 'icon' => 'file', 'children' => [
-                                ['id' => 'permohonan-sktm', 'label' => 'Permohonan SKTM'],
-                                ['id' => 'verifikasi-sktm', 'label' => 'Verifikasi'],
-                                ['id' => 'penerbitan-sktm', 'label' => 'Cetak SKTM'],
-                                ]],
-                                ['id' => 'arsip-surat', 'label' => 'Arsip Surat', 'icon' => 'archive'],
-                                ['id' => 'laporan', 'label' => 'Laporan', 'icon' => 'report'],
-                                ],
+                        ['id' => 'verifikasi-sktm', 'label' => 'Pengajuan Surat Keterangan Tidak Mampu', 'icon' => 'file'],
+                        ['id' => 'laporan', 'label' => 'Laporan', 'icon' => 'report'],
+                    ],
                                 'masyarakat' => [
                                     ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
                                     ['id' => 'profil-saya', 'label' => 'Profil Saya', 'icon' => 'id'],
-                                    ['label' => 'Pelayanan SKTM', 'icon' => 'file', 'children' => [
-                                        ['id' => 'ajukan-sktm', 'label' => 'Ajukan SKTM'],
+                                    ['label' => 'Pelayanan Surat Keterangan Tidak Mampu', 'icon' => 'file', 'children' => [
+                                        ['id' => 'ajukan-sktm', 'label' => 'Ajukan Surat Keterangan Tidak Mampu'],
                                         ['id' => 'status-pengajuan', 'label' => 'Status Pengajuan'],
                                         ['id' => 'dokumen-saya', 'label' => 'Dokumen Saya'],
-                                        ['id' => 'sktm-terbit', 'label' => 'SKTM Terbit'],
+                                        ['id' => 'sktm-terbit', 'label' => 'Surat Keterangan Tidak Mampu Terbit'],
                                         ]],
         ],
     ];
@@ -73,20 +62,20 @@
             ['label' => 'Total Pengguna', 'value' => $dbStats['total_pengguna'] ?? 0, 'unit' => 'Akun', 'color' => 'bg-[#247bd6]', 'icon' => 'people'],
             ['label' => 'Data Masyarakat', 'value' => $dbStats['total_masyarakat'] ?? 0, 'unit' => 'Data', 'color' => 'bg-[#3fbd66]', 'icon' => 'people'],
             ['label' => 'Surat Masuk', 'value' => $dbStats['surat_masuk'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#247bd6]', 'icon' => 'inbox'],
-            ['label' => 'Permohonan SKTM', 'value' => $dbStats['permohonan_sktm'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#8d4be8]', 'icon' => 'people'],
-            ['label' => 'SKTM Diterbitkan', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#2bb8c4]', 'icon' => 'document'],
+            ['label' => 'Permohonan Surat Keterangan Tidak Mampu', 'value' => $dbStats['permohonan_sktm'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#8d4be8]', 'icon' => 'people'],
+            ['label' => 'Surat Keterangan Tidak Mampu Diterbitkan', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#2bb8c4]', 'icon' => 'document'],
         ],
-        'petugas' => [
-            ['label' => 'Surat Masuk', 'value' => $dbStats['surat_masuk'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#247bd6]', 'icon' => 'inbox'],
-            ['label' => 'Surat Keluar', 'value' => $dbStats['surat_keluar'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#3fbd66]', 'icon' => 'outbox'],
-            ['label' => 'Disposisi Surat', 'value' => $dbStats['disposisi_surat'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#ffad19]', 'icon' => 'clipboard'],
-            ['label' => 'Verifikasi SKTM', 'value' => $dbStats['sktm_menunggu'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#ff7a21]', 'icon' => 'search'],
+        'kepala_kecamatan' => [
+            ['label' => 'Total Pengajuan', 'value' => $dbStats['permohonan_sktm'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#247bd6]', 'icon' => 'people'],
+            ['label' => 'Menunggu Keputusan', 'value' => $dbStats['sktm_diverifikasi'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#ffad19]', 'icon' => 'clipboard'],
+            ['label' => 'Disetujui', 'value' => $dbStats['sktm_disetujui'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#3fbd66]', 'icon' => 'document'],
+            ['label' => 'Ditolak', 'value' => $dbStats['sktm_ditolak'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#ef4444]', 'icon' => 'document'],
         ],
         'masyarakat' => [
             ['label' => 'Permohonan Saya', 'value' => $dbStats['permohonan_sktm'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#8d4be8]', 'icon' => 'people'],
             ['label' => 'Dokumen Saya', 'value' => $dbStats['dokumen_sktm'] ?? 0, 'unit' => 'Dokumen', 'color' => 'bg-[#247bd6]', 'icon' => 'document'],
             ['label' => 'Status Menunggu', 'value' => $dbStats['sktm_menunggu'] ?? 0, 'unit' => 'Permohonan', 'color' => 'bg-[#ffad19]', 'icon' => 'clipboard'],
-            ['label' => 'SKTM Terbit', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#3fbd66]', 'icon' => 'outbox'],
+            ['label' => 'Surat Keterangan Tidak Mampu Terbit', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'unit' => 'Surat', 'color' => 'bg-[#3fbd66]', 'icon' => 'outbox'],
         ],
     ];
 
@@ -99,7 +88,7 @@
     $sktmSummary = [
         ['label' => 'Permohonan Masuk', 'value' => $dbStats['permohonan_sktm'] ?? 0, 'change' => '+0', 'color' => 'bg-[#8d4be8]', 'icon' => 'people'],
         ['label' => 'Proses Verifikasi', 'value' => $dbStats['sktm_menunggu'] ?? 0, 'change' => '+0', 'color' => 'bg-[#ff7a21]', 'icon' => 'search'],
-        ['label' => 'SKTM Diterbitkan', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'change' => '+0', 'color' => 'bg-[#3fbd66]', 'icon' => 'document'],
+        ['label' => 'Surat Keterangan Tidak Mampu Diterbitkan', 'value' => $dbStats['sktm_diterbitkan'] ?? 0, 'change' => '+0', 'color' => 'bg-[#3fbd66]', 'icon' => 'document'],
     ];
 
     $sectionTitles = [
@@ -109,14 +98,14 @@
         'surat-keluar' => 'Surat Keluar',
         'disposisi-surat' => 'Disposisi Surat',
         'arsip-surat' => 'Arsip & Dokumen',
-        'permohonan-sktm' => 'Permohonan SKTM',
-        'verifikasi-sktm' => 'Verifikasi SKTM',
-        'penerbitan-sktm' => 'Penerbitan SKTM',
+        'permohonan-sktm' => 'Permohonan Surat Keterangan Tidak Mampu',
+        'verifikasi-sktm' => $role === App\Models\User::ROLE_KEPALA_KECAMATAN ? 'Pengajuan Surat Keterangan Tidak Mampu' : 'Verifikasi Surat Keterangan Tidak Mampu',
+        'penerbitan-sktm' => 'Penerbitan Surat Keterangan Tidak Mampu',
         'profil-saya' => 'Profil Saya',
-        'ajukan-sktm' => 'Ajukan SKTM',
+        'ajukan-sktm' => 'Ajukan Surat Keterangan Tidak Mampu',
         'status-pengajuan' => 'Status Pengajuan',
         'dokumen-saya' => 'Dokumen Saya',
-        'sktm-terbit' => 'SKTM Terbit',
+        'sktm-terbit' => 'Surat Keterangan Tidak Mampu Terbit',
         'data-pengguna' => 'Manajemen User',
         'laporan' => 'Laporan',
     ];
@@ -133,15 +122,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $currentTitle }} - Sistem Informasi SKTM</title>
+    <title>{{ $currentTitle }} - Sistem Informasi Surat Keterangan Tidak Mampu</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-white font-sans text-slate-900 antialiased">
-    <div class="min-h-screen p-3">
+    <div x-data="{ mobileMenu: false }" x-effect="document.body.classList.toggle('overflow-hidden', mobileMenu)" class="min-h-screen p-3">
         <div class="mx-auto flex min-h-[calc(100vh-24px)] max-w-[1860px] overflow-hidden border border-slate-200 bg-white shadow-[0_1px_18px_rgba(15,23,42,0.12)]">
+            <div x-cloak x-show="mobileMenu" @keydown.escape.window="mobileMenu = false" class="fixed inset-0 z-50 lg:hidden">
+                <button type="button" @click="mobileMenu = false" class="absolute inset-0 bg-slate-950/40" aria-label="Tutup menu"></button>
+                <aside class="relative h-full w-[min(320px,85vw)] overflow-y-auto bg-white p-6 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-5">
+                        <p class="text-base font-extrabold text-[#17283d]">Menu {{ $roleLabel }}</p>
+                        <button type="button" @click="mobileMenu = false" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" aria-label="Tutup menu">
+                            <svg viewBox="0 0 24 24" class="h-6 w-6 fill-none stroke-current stroke-2" aria-hidden="true">
+                                <path d="m6 6 12 12M18 6 6 18" />
+                            </svg>
+                        </button>
+                    </div>
+                    <nav class="mt-5 space-y-2" aria-label="Navigasi utama">
+                        @foreach ($roleMenus as $menu)
+                            @if (isset($menu['children']))
+                                <p class="px-3 pt-3 text-xs font-extrabold uppercase tracking-wide text-slate-400">{{ $menu['label'] }}</p>
+                                @foreach ($menu['children'] as $child)
+                                    <a href="{{ route('dashboard.section', $child['id']) }}" class="{{ $activeSection === $child['id'] ? 'bg-[#2379d7] text-white' : 'text-slate-700 hover:bg-slate-50' }} block rounded-md px-4 py-3 text-sm font-bold">{{ $child['label'] }}</a>
+                                @endforeach
+                            @else
+                                @php $mobileHref = $menu['id'] === 'dashboard' ? route('dashboard') : route('dashboard.section', $menu['id']); @endphp
+                                <a href="{{ $mobileHref }}" class="{{ $activeSection === $menu['id'] ? 'bg-[#2379d7] text-white' : 'text-slate-700 hover:bg-slate-50' }} block rounded-md px-4 py-3 text-sm font-bold">{{ $menu['label'] }}</a>
+                            @endif
+                        @endforeach
+                    </nav>
+                </aside>
+            </div>
+
             <aside class="hidden w-[330px] shrink-0 border-r border-slate-200 bg-white px-7 py-8 lg:block">
                 <div class="flex flex-col items-center text-center">
                     <div class="h-[116px] w-[98px]">
@@ -159,8 +175,8 @@
                     </div>
                     <h1 class="mt-5 text-[15px] font-extrabold uppercase leading-[1.55] tracking-[0] text-[#17283d]">
                         Sistem Informasi<br>
-                        Inventorisasi Surat dan<br>
-                        Pelayanan SKTM<br>
+                        Inventarisasi Surat dan<br>
+                        Pelayanan Surat Keterangan Tidak Mampu<br>
                         Administrasi Berbasis Web
                     </h1>
                     <p class="mt-3 text-[15px] font-semibold text-slate-700">Kecamatan Marangkayu</p>
@@ -227,12 +243,12 @@
             <div class="min-w-0 flex-1 bg-[#fbfdff]">
                 <header class="flex h-[88px] items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8">
                     <div class="flex items-center gap-6">
-                        <button type="button" class="flex h-10 w-10 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100" aria-label="Buka menu">
+                        <button type="button" @click="mobileMenu = true" class="flex h-10 w-10 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 lg:hidden" aria-label="Buka menu" :aria-expanded="mobileMenu.toString()">
                             <svg viewBox="0 0 24 24" class="h-7 w-7 fill-current" aria-hidden="true">
                                 <path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z" />
                             </svg>
                         </button>
-                        <h2 class="text-[24px] font-extrabold text-[#1b2b3f]">{{ $currentTitle }}</h2>
+                        <h2 class="hidden text-[24px] font-extrabold text-[#1b2b3f] sm:block">{{ $currentTitle }}</h2>
                     </div>
 
                     <div class="flex items-center gap-6">
@@ -274,8 +290,8 @@
                                 <div>
                                     <h3 class="text-[34px] font-extrabold leading-tight text-[#1b2b3f]">Selamat Datang, {{ $roleLabel }}!</h3>
                                     <p class="mt-5 max-w-[760px] text-[17px] font-semibold leading-8 text-slate-600">
-                                        Anda masuk ke dalam Sistem Informasi Inventorisasi Surat<br class="hidden xl:block">
-                                        dan Pelayanan SKTM Administrasi Kecamatan Marangkayu.
+                                        Anda masuk ke dalam Sistem Informasi Inventarisasi Surat<br class="hidden xl:block">
+                                        dan Pelayanan Surat Keterangan Tidak Mampu Administrasi Kecamatan Marangkayu.
                                     </p>
                                 </div>
 
@@ -317,7 +333,7 @@
                                             </svg>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="truncate text-[15px] font-extrabold text-slate-700">{{ $stat['label'] }}</p>
+                                            <p class="text-[15px] font-extrabold leading-5 text-slate-700">{{ $stat['label'] }}</p>
                                             <p class="mt-2 text-[31px] font-extrabold leading-none text-[#1b2b3f]">{{ $stat['value'] }}</p>
                                             <p class="mt-2 text-[14px] font-semibold text-slate-500">{{ $stat['unit'] }}</p>
                                         </div>
@@ -327,13 +343,15 @@
                                             'Surat Masuk' => 'surat-masuk',
                                             'Surat Keluar' => 'surat-keluar',
                                             'Disposisi Surat', 'Disposisi Diproses' => 'disposisi-surat',
-                                            'Permohonan SKTM' => 'permohonan-sktm',
+                                            'Permohonan Surat Keterangan Tidak Mampu' => $role === App\Models\User::ROLE_KEPALA_KECAMATAN ? 'laporan' : 'permohonan-sktm',
+                                            'Total Pengajuan', 'Disetujui', 'Ditolak' => 'laporan',
+                                            'Menunggu Keputusan' => 'verifikasi-sktm',
                                             'Permohonan Saya', 'Status Menunggu' => 'status-pengajuan',
                                             'Total Pengguna' => 'data-pengguna',
                                             'Data Masyarakat' => 'data-masyarakat',
-                                            'Verifikasi SKTM' => 'verifikasi-sktm',
-                                            'Cetak SKTM', 'SKTM Diterbitkan' => 'penerbitan-sktm',
-                                            'SKTM Terbit' => 'sktm-terbit',
+                                            'Verifikasi Surat Keterangan Tidak Mampu' => 'verifikasi-sktm',
+                                            'Surat Keterangan Tidak Mampu Diterbitkan' => 'penerbitan-sktm',
+                                            'Surat Keterangan Tidak Mampu Terbit' => 'sktm-terbit',
                                             'Dokumen Saya' => 'dokumen-saya',
                                             default => 'dashboard',
                                         };
@@ -348,7 +366,7 @@
 
                         <section class="mt-7 grid gap-6 xl:grid-cols-2">
                             <article class="rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
-                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Inventorisasi Surat</h3>
+                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Inventarisasi Surat</h3>
                                 <div class="divide-y divide-slate-100 px-6">
                                     @foreach ($inventorySummary as $item)
                                         <div class="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-5 py-4">
@@ -367,7 +385,7 @@
                             </article>
 
                             <article class="rounded-lg border border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,23,42,0.05)]">
-                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Pelayanan SKTM</h3>
+                                <h3 class="border-b border-slate-200 px-6 py-5 text-[20px] font-extrabold text-[#1b2b3f]">Ringkasan Pelayanan Surat Keterangan Tidak Mampu</h3>
                                 <div class="divide-y divide-slate-100 px-6">
                                     @foreach ($sktmSummary as $item)
                                         <div class="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-5 py-4">
